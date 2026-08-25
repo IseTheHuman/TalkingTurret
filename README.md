@@ -1,14 +1,48 @@
 # TalkingTurret
 
-A plugin for Claude. Makes Claude accompany its response by playing a fitting voice-sample of the cute Portal turrets. Also works great as a notification that Claude is waiting on new input.
-
-Instead of one fixed notification sound, this plugin plays a category-appropriate voice line for what Claude is actually doing: starting work, waiting on you, asking a question, hitting an error, signing off, and more.
+A plugin for Claude Code. Makes Claude accompany its response by playing a fitting voice-sample of the cute Portal turrets, instead of one fixed notification sound — a category-appropriate voice line for what Claude is actually doing: starting work, waiting on you, asking a question, hitting an error, signing off, and more. Also works great as a notification that Claude is waiting on new input.
 
 ## ⚠️ Repository status: private, audio rights unresolved
 
 This repo is **private** and should stay that way until the licensing status of the bundled `sounds/` files is resolved. The audio is a set of Portal turret/GLaDOS-style voice lines. Checking [the source wiki page](https://theportalwiki.com/wiki/Turret_voice_lines) directly: its CC BY 4.0 notice covers the wiki's own article text only, **not** the audio files, which remain Valve's copyrighted material with no explicit reuse grant. Do not make this repo public, and do not redistribute `sounds/` elsewhere, until that's sorted out (e.g. a licensed/royalty-free replacement set, or explicit permission).
 
 The code in `hooks/` is separately MIT-licensed (see `LICENSE`) and has no such restriction.
+
+## Installation
+
+**Prerequisites:** [Claude Code](https://claude.com/claude-code) itself (which bundles Node.js, used to run the hook scripts) and `git`. No npm packages, no build step.
+
+```bash
+git clone https://github.com/IseTheHuman/TalkingTurret.git ~/.claude/skills/talking-turret
+```
+
+That's it — Claude Code auto-discovers any plugin placed under `~/.claude/skills/<name>/` (containing a `.claude-plugin/plugin.json`) with no separate `/plugin install` step. **Restart Claude Code (start a new session)** for it to take effect — plugins are only loaded at session start, so an already-running session won't pick it up.
+
+Verify it's loaded:
+
+```bash
+claude plugin list
+```
+
+You should see `talking-turret@skills-dir` listed under "Skills-directory plugins" with status `loaded`.
+
+**If you already have your own personal sound hooks** wired up directly in `~/.claude/settings.json` (rather than through this plugin), remove those entries first — otherwise every event fires twice, once from each source.
+
+**To update:** `git pull` inside `~/.claude/skills/talking-turret`, then restart.
+
+**To uninstall:** delete the `~/.claude/skills/talking-turret` folder, then restart.
+
+## Compatibility
+
+| Setup | Works? | Notes |
+|---|---|---|
+| Windows 10/11 | ✅ Yes | Uses `System.Media.SoundPlayer` via PowerShell (built into every supported Windows version). |
+| macOS | ✅ Yes | Uses `afplay` (built-in, no install needed). |
+| Linux desktop (Ubuntu, Fedora, etc.) | ✅ Usually | Uses whichever of `paplay`, `aplay`, or `ffplay` is found on `PATH`, in that order. Most desktop distros ship at least one out of the box. |
+| Linux minimal/server distro with no audio player installed | ⚠️ Silent no-op | The hook runs, logs the pick, but plays nothing — by design, so a missing player never errors or blocks a turn. Install `pulseaudio-utils` (`paplay`) or `alsa-utils` (`aplay`) to fix. |
+| **Remote/SSH sessions, cloud VMs, devcontainers, CI runners, Codespaces** | ❌ No (by design of how hooks work) | A hook's shell command runs wherever the **Claude Code process** runs — on a remote machine, that's the remote machine, not your local speakers. There's no built-in audio relay back to your local device. If you're SSH'd into a headless server, you will not hear anything, even if the plugin loads and "works" correctly on that end. |
+| WSL (Windows Subsystem for Linux) | ⚠️ Depends | Needs WSLg's audio passthrough (Windows 11, enabled by default in recent versions) or manually configured PulseAudio-over-network forwarding to reach your Windows speakers. Not guaranteed out of the box on older WSL setups. |
+| Multiple concurrent Claude Code sessions on one machine | ⚠️ Works, but sounds are unattributed | All sessions share the same system audio output — you can't tell which session made a given sound just by ear. `${CLAUDE_PLUGIN_DATA}/hook-fire-log.jsonl` records the session ID per firing if you need to check after the fact. |
 
 ## How it works
 
@@ -27,9 +61,11 @@ Five Claude Code hook events are wired up (`hooks/hooks.json`):
 A single fixed "finished" sound for every turn ending turned out to feel wrong most of the time (saying goodbye but hearing a generic "done" chime, etc.), so `Stop` picks from the full category list using two layers:
 
 1. **Claude self-tags its own answer.** Near the end of a turn, Claude writes a small JSON file — `{"category":"<name>","ts":"<now>"}` — to `${CLAUDE_PLUGIN_DATA}/last-answer-category.json`, reflecting what it actually just said. This is a normal tool call (not visible clutter in the answer), costs no extra API call, and is far more accurate than any keyword heuristic since it's Claude's own judgment with full context.
-2. **Enforcement.** If no fresh (≤45s old) valid tag exists when `Stop` fires, the hook returns `{"decision":"block","reason":"..."}`, which forces Claude to continue the turn instead of actually stopping, with instructions to write the tag. This can only happen **once per turn** — the hook checks `stop_hook_active` (Claude Code's own loop-guard field) and never blocks twice, so it's structurally impossible for this to hang. If Claude still doesn't comply on the retry, the hook falls back to keyword-matching the last paragraph of Claude's actual response text (with backtick-quoted code spans stripped, so mentioning a category name as a technical term doesn't false-positive as that category).
+2. **Enforcement.** If no fresh (≤45s old) valid tag exists when `Stop` fires, the hook returns `{"decision":"block","reason":"...","systemMessage":"..."}`, which forces Claude to continue the turn instead of actually stopping, with instructions (in `reason`) to write the tag. This can only happen **once per turn** — the hook checks `stop_hook_active` (Claude Code's own loop-guard field) and never blocks twice, so it's structurally impossible for this to hang. If Claude still doesn't comply on the retry, the hook falls back to keyword-matching the last paragraph of Claude's actual response text (with backtick-quoted code spans stripped, so mentioning a category name as a technical term doesn't false-positive as that category).
 
 If nothing fits, the tag/fallback both land on `finished` — that's a legitimate category, not an omission.
+
+**In practice, expect the block to fire often**, not rarely — self-tagging depends on Claude remembering to do it every turn, which it doesn't always do. The block is what makes the category *correct* even then; it's not just a rare safety net.
 
 ### Categories
 
@@ -37,20 +73,16 @@ If nothing fits, the tag/fallback both land on `finished` — that's a legitimat
 
 ### Cross-platform sound playback
 
-`hooks/common.js` detects `process.platform` and shells out to the native player: `SoundPlayer` via PowerShell on Windows, `afplay` on macOS, and the first of `paplay`/`aplay`/`ffplay` found on `PATH` on Linux. All hook scripts are plain Node.js (no external npm dependencies) so `${CLAUDE_PLUGIN_ROOT}` + `node <script>` works identically on every platform — the only thing that differs is what `common.js` shells out to.
+`hooks/common.js` detects `process.platform` and shells out to the native player per the compatibility table above. All hook scripts are plain Node.js (no external npm dependencies), so `${CLAUDE_PLUGIN_ROOT}` + `node <script>` works identically on every platform — the only thing that differs is what `common.js` shells out to.
 
 Runtime state (the tag file, the fire-activity log) lives under `${CLAUDE_PLUGIN_DATA}` — the plugin's persistent data directory — not under `${CLAUDE_PLUGIN_ROOT}`, which is treated as read-only bundled content that may be replaced on update.
-
-## Installing (while private)
-
-Not on a marketplace yet (see rights status above). To use it yourself:
-
-```bash
-git clone https://github.com/IseTheHuman/TalkingTurret.git ~/.claude/skills/talking-turret
-```
-
-Claude Code auto-discovers a plugin placed in `~/.claude/skills/<name>/` (containing `.claude-plugin/plugin.json`) with no separate install step.
 
 ## Debugging / auditing
 
 Every hook firing — including blocked `Stop` attempts — is logged to `${CLAUDE_PLUGIN_DATA}/hook-fire-log.jsonl` (timestamp, event, category, session ID, and either the matched sound file or the text snippet that was matched). Set the `HOOK_SOUND_DRYRUN` environment variable to any value to test a hook script without actually playing audio (still logs normally).
+
+## Known limitations
+
+- **No remote audio relay** (see compatibility table) — this is a fundamental constraint of how hook commands execute, not something fixable in this plugin alone.
+- **Self-tagging compliance isn't perfect** — the enforcement mechanism guarantees a *correct* category eventually, not that Claude never needs the retry prompt.
+- **No per-session audio isolation** — see compatibility table.
