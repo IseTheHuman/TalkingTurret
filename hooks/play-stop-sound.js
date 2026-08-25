@@ -135,7 +135,7 @@ function main() {
             `{"category":"<one of: ${ALL_CATEGORIES.join(', ')}>","ts":"<current ISO8601 timestamp>"} ` +
             `reflecting the actual tone/content of the answer you just gave, then finish normally.`;
         writeHookLog('Stop:blocked-for-tag', '', sessionId, '');
-        process.stdout.write(JSON.stringify({ decision: 'block', reason, systemMessage: 'Sound tag missing - retagging.' }));
+        process.stdout.write(JSON.stringify({ decision: 'block', reason, systemMessage: 'TalkingTurret is thinking about what to say' }));
         process.exit(0);
     }
 
