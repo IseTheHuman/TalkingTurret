@@ -1,0 +1,13 @@
+{
+  "name": "claude-voice-notifications",
+  "displayName": "Claude Voice Notifications",
+  "version": "0.1.0",
+  "author": {
+    "name": "IseTheHuman",
+    "url": "https://github.com/IseTheHuman"
+  },
+  "description": "Contextual voice-line audio feedback for Claude Code, keyed to what Claude is actually doing (thinking, waiting, asking a question, hitting an error, signing off, etc.), not a single fixed notification sound.",
+  "license": "MIT (code only - see README for sounds/ licensing status)",
+  "keywords": ["sound", "audio", "notifications", "hooks", "accessibility"],
+  "defaultEnabled": true
+}
