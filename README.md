@@ -1,6 +1,8 @@
-# Claude Voice Notifications
+# TalkingTurret
 
-Contextual audio feedback for [Claude Code](https://claude.com/claude-code) — instead of one fixed notification sound, this plugin plays a category-appropriate voice line for what Claude is actually doing: starting work, waiting on you, asking a question, hitting an error, signing off, and more.
+A plugin for Claude. Makes Claude accompany its response by playing a fitting voice-sample of the cute Portal turrets. Also works great as a notification that Claude is waiting on new input.
+
+Instead of one fixed notification sound, this plugin plays a category-appropriate voice line for what Claude is actually doing: starting work, waiting on you, asking a question, hitting an error, signing off, and more.
 
 ## ⚠️ Repository status: private, audio rights unresolved
 
@@ -44,7 +46,7 @@ Runtime state (the tag file, the fire-activity log) lives under `${CLAUDE_PLUGIN
 Not on a marketplace yet (see rights status above). To use it yourself:
 
 ```bash
-git clone <this-repo-url> ~/.claude/skills/claude-voice-notifications
+git clone https://github.com/IseTheHuman/TalkingTurret.git ~/.claude/skills/talking-turret
 ```
 
 Claude Code auto-discovers a plugin placed in `~/.claude/skills/<name>/` (containing `.claude-plugin/plugin.json`) with no separate install step.
