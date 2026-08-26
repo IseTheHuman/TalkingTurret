@@ -39,6 +39,15 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/play-askuserquestion-sound.js\""
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/play-testing-sound.js\""
+          }
+        ]
       }
     ],
     "Stop": [

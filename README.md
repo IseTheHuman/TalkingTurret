@@ -2,6 +2,8 @@
 
 A plugin for Claude Code. Makes Claude accompany its response by playing a fitting voice-sample of the cute Portal turrets, instead of one fixed notification sound — a category-appropriate voice line for what Claude is actually doing: starting work, waiting on you, asking a question, hitting an error, signing off, and more. Also works great as a notification that Claude is waiting on new input.
 
+The voice lines feature mainly Portal's turrets, with some GLaDOS sprinkled in occasionally.
+
 ## ⚠️ Repository status: private, audio rights unresolved
 
 This repo is **private** and should stay that way until the licensing status of the bundled `sounds/` files is resolved. The audio is a set of Portal turret/GLaDOS-style voice lines. Checking [the source wiki page](https://theportalwiki.com/wiki/Turret_voice_lines) directly: its CC BY 4.0 notice covers the wiki's own article text only, **not** the audio files, which remain Valve's copyrighted material with no explicit reuse grant. Do not make this repo public, and do not redistribute `sounds/` elsewhere, until that's sorted out (e.g. a licensed/royalty-free replacement set, or explicit permission).
@@ -46,7 +48,7 @@ You should see `talking-turret@skills-dir` listed under "Skills-directory plugin
 
 ## How it works
 
-Five Claude Code hook events are wired up (`hooks/hooks.json`):
+Six Claude Code hook events are wired up (`hooks/hooks.json`):
 
 | Event | Trigger | Sound source |
 |---|---|---|
@@ -54,6 +56,7 @@ Five Claude Code hook events are wired up (`hooks/hooks.json`):
 | `Notification` (`permission_prompt`) | Claude needs a permission decision | random file from `sounds/question/` |
 | `UserPromptSubmit` | You just submitted a message | random file from `sounds/start thinking/` (also silently primes Claude with the `Stop` sound-tag convention — see below) |
 | `PostToolUse` (`AskUserQuestion`) | Claude asked a structured multiple-choice question | random file from `sounds/start thinking/` |
+| `PostToolUse` (`Bash`) | The executed command was a test-runner invocation (`npm test`, `jest`, `pytest`, `cargo test`, etc. — detected from the actual `tool_input.command`, not from Claude's answer text) | random file from `sounds/testing/` |
 | `Stop` | Claude finished a turn | category chosen dynamically — see below |
 
 ### `Stop`: how the category is chosen
@@ -71,7 +74,7 @@ Earlier iterations tried to keep the `Stop`-hook block but make its output less 
 
 ### Categories
 
-`bug found`, `bug_fixed`, `build`, `compliment`, `confirm_destructive`, `error`, `finished`, `fixing`, `goodbye`, `missing_file`, `mistake`, `no_access`, `out_of_tokens`, `question`, `searching bug`, `start thinking`, `thinking`, `understood`, `waiting`, `welcome` — folder names under `sounds/`. `thinking` is reserved for when you explicitly ask if Claude is still working; it's not automatically triggered by any hook.
+`bug found`, `bug_fixed`, `build`, `compliment`, `confirm_destructive`, `error`, `finished`, `fixing`, `goodbye`, `missing_file`, `mistake`, `no_access`, `out_of_tokens`, `question`, `searching bug`, `start thinking`, `testing`, `thinking`, `understood`, `waiting`, `welcome` — folder names under `sounds/`. `thinking` is reserved for when you explicitly ask if Claude is still working; it's not automatically triggered by any hook. `testing` is auto-triggered by `PostToolUse` (`Bash`) whenever the executed command is a test-runner invocation — see the hook table above — not part of the `Stop`-hook self-tag/keyword system.
 
 ### Cross-platform sound playback
 
