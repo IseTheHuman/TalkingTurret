@@ -48,11 +48,12 @@ You should see `talking-turret@skills-dir` listed under "Skills-directory plugin
 
 ## How it works
 
-Seven Claude Code hook events are wired up (`hooks/hooks.json`):
+Eight Claude Code hook events are wired up (`hooks/hooks.json`):
 
 | Event | Trigger | Sound source |
 |---|---|---|
 | `SessionStart` | A session opens (startup, resume, or `/clear`) - not on `/compact`, since that fires mid-session rather than at an actual open | random file from `sounds/welcome/` |
+| `PreCompact` | Claude Code is about to compact the conversation (manual `/compact` or automatic when context fills up) | random file from `sounds/compact/` |
 | `Notification` (`idle_prompt`) | Claude has been waiting on you for a while | random file from `sounds/waiting/` |
 | `Notification` (`permission_prompt`) | Claude needs a permission decision | random file from `sounds/question/` |
 | `UserPromptSubmit` | You just submitted a message | random file from `sounds/start thinking/` (also silently primes Claude with the `Stop` sound-tag convention — see below) |
@@ -75,7 +76,7 @@ Earlier iterations tried to keep the `Stop`-hook block but make its output less 
 
 ### Categories
 
-`bug found`, `bug_fixed`, `build`, `compliment`, `confirm_destructive`, `error`, `finished`, `fixing`, `goodbye`, `missing_file`, `mistake`, `no_access`, `out_of_tokens`, `question`, `searching bug`, `start thinking`, `testing`, `thinking`, `understood`, `waiting`, `welcome` — folder names under `sounds/`. `thinking` is reserved for when you explicitly ask if Claude is still working; it's not automatically triggered by any hook. `testing` is auto-triggered by `PostToolUse` (`Bash`) whenever the executed command is a test-runner invocation, and `welcome` by `SessionStart` — see the hook table above — neither is part of the `Stop`-hook self-tag/keyword system.
+`bug found`, `bug_fixed`, `build`, `compact`, `compliment`, `confirm_destructive`, `error`, `finished`, `fixing`, `goodbye`, `missing_file`, `mistake`, `no_access`, `out_of_tokens`, `question`, `searching bug`, `start thinking`, `testing`, `thinking`, `understood`, `waiting`, `welcome` — folder names under `sounds/`. `thinking` is reserved for when you explicitly ask if Claude is still working; it's not automatically triggered by any hook. `testing` is auto-triggered by `PostToolUse` (`Bash`) whenever the executed command is a test-runner invocation, `welcome` by `SessionStart`, and `compact` by `PreCompact` — see the hook table above — none of the three are part of the `Stop`-hook self-tag/keyword system.
 
 ### Cross-platform sound playback
 
