@@ -1,14 +1,8 @@
 # TalkingTurret
 
-A plugin for Claude Code. Makes Claude accompany its response by playing a fitting voice-sample of the cute Portal turrets, instead of one fixed notification sound — a category-appropriate voice line for what Claude is actually doing: starting work, waiting on you, asking a question, hitting an error, signing off, and more. Also works great as a notification that Claude is waiting on new input.
+A plugin that gives Claude Code a soul. Makes Claude accompany its response with voice-sample from the portal games. Also works great as an audible notification when Claude is waiting on new input.
 
 The voice lines feature mainly Portal's turrets, with some GLaDOS sprinkled in occasionally, sourced from [the Portal Wiki's Voice lines page](https://theportalwiki.com/wiki/Voice_lines).
-
-## ⚠️ Repository status: private, audio rights unresolved
-
-This repo is **private** and should stay that way until the licensing status of the bundled `sounds/` files is resolved. The audio is a set of Portal turret/GLaDOS-style voice lines. Checking [the source wiki page](https://theportalwiki.com/wiki/Turret_voice_lines) directly: its CC BY 4.0 notice covers the wiki's own article text only, **not** the audio files, which remain Valve's copyrighted material with no explicit reuse grant. Do not make this repo public, and do not redistribute `sounds/` elsewhere, until that's sorted out (e.g. a licensed/royalty-free replacement set, or explicit permission).
-
-The code in `hooks/` is separately MIT-licensed (see `LICENSE`) and has no such restriction.
 
 ## Installation
 
