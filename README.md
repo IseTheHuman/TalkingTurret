@@ -1,5 +1,9 @@
 # TalkingTurret
 
+<p align="center">
+  <img src="assets/TalkingTurret.png" alt="TalkingTurret logo" width="260">
+</p>
+
 A plugin that gives Claude Code a soul. Makes Claude accompany its response with voice-sample from the portal games. Also works great as an audible notification when Claude is waiting on new input.
 
 The voice lines feature mainly Portal's turrets, with some GLaDOS sprinkled in occasionally, sourced from [the Portal Wiki's Voice lines page](https://theportalwiki.com/wiki/Voice_lines).
