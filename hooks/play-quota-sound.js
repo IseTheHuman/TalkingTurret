@@ -1,10 +1,16 @@
 'use strict';
-// Notification hook (matchers: quota_auto_resume_fired/stale/disabled): plays
-// out_of_tokens whenever Claude Code hits a usage/session limit. This is the
-// real signal for that - the Stop hook's keyword fallback (matching phrases
-// like "out of tokens" in Claude's own answer text) never fires for an
-// actual limit hit, since Claude doesn't get to produce/finish an answer to
-// scan when it's cut off by the limit itself.
+// Notification hook (matcher: quota_auto_resume_disabled): plays
+// out_of_tokens when Claude Code gives up trying to auto-resume after a
+// usage/session limit. This is the real signal for that - the Stop hook's
+// keyword fallback (matching phrases like "out of tokens" in Claude's own
+// answer text) never fires for an actual limit hit, since Claude doesn't
+// get to produce/finish an answer to scan when it's cut off by the limit
+// itself.
+//
+// Deliberately NOT wired to quota_auto_resume_fired/stale - those mean the
+// limit reset and the task is resuming/tokens are available again, which
+// doesn't fit the out_of_tokens voice lines (all about being denied/capped,
+// not about being un-capped).
 
 const path = require('path');
 const { readHookStdin, soundsRoot, writeHookLog, playRandomSound } = require('./common');

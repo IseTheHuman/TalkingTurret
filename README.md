@@ -56,7 +56,7 @@ Nine Claude Code hook triggers are wired up (`hooks/hooks.json`):
 | `PreCompact` | Claude Code is about to compact the conversation (manual `/compact` or automatic when context fills up) | random file from `sounds/compact/` |
 | `Notification` (`idle_prompt`) | Claude has been waiting on you for a while | random file from `sounds/waiting/` |
 | `Notification` (`permission_prompt`) | Claude needs a permission decision | random file from `sounds/question/` |
-| `Notification` (`quota_auto_resume_fired` / `_stale` / `_disabled`) | Claude Code hit a usage/session limit - a paused task resumed, resumed-but-stale (needs confirmation), or auto-resume gave up entirely | random file from `sounds/out_of_tokens/` |
+| `Notification` (`quota_auto_resume_disabled`) | Claude Code gave up trying to auto-resume after a usage/session limit | random file from `sounds/out_of_tokens/` |
 | `UserPromptSubmit` | You just submitted a message | random file from `sounds/start thinking/` (also silently primes Claude with the `Stop` sound-tag convention — see below) |
 | `PostToolUse` (`AskUserQuestion`) | Claude asked a structured multiple-choice question | random file from `sounds/start thinking/` |
 | `PostToolUse` (`Bash`) | The executed command was a test-runner invocation (`npm test`, `jest`, `pytest`, `cargo test`, etc. — detected from the actual `tool_input.command`, not from Claude's answer text) | random file from `sounds/testing/` |
