@@ -82,6 +82,7 @@ function lastParagraph(text) {
 // Ordered: most specific / safety-relevant signals first, generic ones last.
 // "finished" is not listed - it's the fallback when nothing matches.
 const CATEGORY_PATTERNS = [
+    ['welcome', [/^(hi|hey|hello)[!.,\s]*$/i, /^(hi|hey|hello) there\b/i, /good morning/i, /good afternoon/i, /good evening/i, /welcome back/i]],
     ['confirm_destructive', [/this will delete/i, /cannot be undone/i, /irreversible/i, /force push/i, /permanently delete/i, /drop table/i]],
     ['out_of_tokens', [/running low on context/i, /out of tokens/i, /need to compact/i, /hitting the limit/i]],
     ['no_access', [/you.ll need to log in/i, /i don.t have access/i, /permission denied/i, /requires your credentials/i, /run this yourself/i]],

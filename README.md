@@ -76,7 +76,7 @@ Earlier iterations tried to keep the `Stop`-hook block but make its output less 
 
 ### Categories
 
-`bug found`, `bug_fixed`, `build`, `compact`, `compliment`, `confirm_destructive`, `error`, `finished`, `fixing`, `goodbye`, `missing_file`, `mistake`, `no_access`, `out_of_tokens`, `question`, `searching bug`, `start thinking`, `testing`, `thinking`, `understood`, `waiting`, `welcome` — folder names under `sounds/`. `thinking` is reserved for when you explicitly ask if Claude is still working; it's not automatically triggered by any hook. `testing` is auto-triggered by `PostToolUse` (`Bash`) whenever the executed command is a test-runner invocation, `welcome` by `SessionStart`, and `compact` by `PreCompact` — see the hook table above — none of the three are part of the `Stop`-hook self-tag/keyword system.
+`bug found`, `bug_fixed`, `build`, `compact`, `compliment`, `confirm_destructive`, `error`, `finished`, `fixing`, `goodbye`, `missing_file`, `mistake`, `no_access`, `out_of_tokens`, `question`, `searching bug`, `start thinking`, `testing`, `thinking`, `understood`, `waiting`, `welcome` — folder names under `sounds/`. `thinking` is reserved for when you explicitly ask if Claude is still working; it's not automatically triggered by any hook. `testing` is auto-triggered by `PostToolUse` (`Bash`) whenever the executed command is a test-runner invocation, and `compact` by `PreCompact` — see the hook table above — neither is part of the `Stop`-hook self-tag/keyword system. `welcome` is triggered by `SessionStart` *and* is self-taggable/keyword-matched at `Stop` — if a session's first message is just a greeting, Claude's reply to it can be tagged `welcome` too.
 
 ### Cross-platform sound playback
 
