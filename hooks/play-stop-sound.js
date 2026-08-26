@@ -120,9 +120,12 @@ function main() {
 
     // No blocking retry here anymore: play-userpromptsubmit-sound.js primes
     // the tag convention fresh on every turn (confirmed silent to the user,
-    // unlike a Stop-hook block, which always echoes something visible). If
-    // Claude still didn't self-tag, fall straight through to keyword-match
-    // below - zero JSON/stdout output, so nothing ever prints here.
+    // unlike a Stop-hook block, which always echoes something visible - see
+    // README.md's "A note on the design history" for what was tried,
+    // including suppressOutput, and why none of it beat priming instead).
+    // If Claude still didn't self-tag, fall straight through to
+    // keyword-match below - zero JSON/stdout output, so nothing ever prints
+    // here.
 
     let scanText = null;
     if (!matched) {
