@@ -51,7 +51,7 @@ const ALL_CATEGORIES = [
     'confirm_destructive', 'out_of_tokens', 'no_access', 'missing_file',
     'mistake', 'error', 'question', 'bug_fixed', 'bug found', 'fixing',
     'searching bug', 'understood', 'compliment', 'build', 'goodbye', 'finished',
-    'welcome',
+    'welcome', 'milestone_reached',
 ];
 
 function tagFilePath() {

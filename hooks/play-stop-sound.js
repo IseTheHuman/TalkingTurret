@@ -93,6 +93,7 @@ const CATEGORY_PATTERNS = [
     // if the message both reports progress AND asks something, the question
     // is the more actionable signal.
     ['question', [/\?\s*$/, /would you like/i, /do you want me to/i, /\bwant me to\b/i, /which would you prefer/i, /how do you want/i, /which one/i, /\bshould i\b/i, /could you clarify/i]],
+    ['milestone_reached', [/\bmilestone\b/i, /huge (win|success)/i, /massive achievement/i, /we (finally )?(did it|made it|shipped it)\b/i, /major achievement/i]],
     ['bug_fixed', [/\bfixed\b/i, /\bresolved\b/i, /should fix it/i, /issue resolved/i, /bug is gone/i, /verified the fix/i]],
     ['bug found', [/found the bug/i, /found it\b/i, /root cause/i, /here.s what.s causing/i, /i see the problem/i, /that explains it/i]],
     ['fixing', [/let me fix/i, /fixing now/i, /applying the fix/i, /working on a fix/i, /patching/i]],
