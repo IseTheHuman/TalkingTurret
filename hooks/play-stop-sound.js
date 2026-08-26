@@ -131,11 +131,16 @@ function main() {
     // already blocked once for this turn, so never block a second time no
     // matter what - that's what makes this finite.
     if (!matched && !stopHookActive) {
-        const reason = `Before finishing, write a sound-category tag: create ${tagFilePath()} containing ` +
+        const shortReason = 'TalkingTurret: write the sound-category tag before finishing (see additionalContext).';
+        const fullInstructions = `Before finishing, write a sound-category tag: create ${tagFilePath()} containing ` +
             `{"category":"<one of: ${ALL_CATEGORIES.join(', ')}>","ts":"<current ISO8601 timestamp>"} ` +
             `reflecting the actual tone/content of the answer you just gave, then finish normally.`;
         writeHookLog('Stop:blocked-for-tag', '', sessionId, '');
-        process.stdout.write(JSON.stringify({ decision: 'block', reason, systemMessage: 'TalkingTurret is thinking about what to say' }));
+        process.stdout.write(JSON.stringify({
+            decision: 'block',
+            reason: shortReason,
+            hookSpecificOutput: { hookEventName: 'Stop', additionalContext: fullInstructions },
+        }));
         process.exit(0);
     }
 
