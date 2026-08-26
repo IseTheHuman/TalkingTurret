@@ -139,6 +139,7 @@ function main() {
         process.stdout.write(JSON.stringify({
             decision: 'block',
             reason: shortReason,
+            suppressOutput: true,
             hookSpecificOutput: { hookEventName: 'Stop', additionalContext: fullInstructions },
         }));
         process.exit(0);
