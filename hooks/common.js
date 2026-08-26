@@ -40,6 +40,11 @@ function soundsRoot() {
 // Shared between play-userpromptsubmit-sound.js (primes Claude with the tag
 // convention on every turn, silently) and play-stop-sound.js (reads back
 // whatever tag Claude wrote, falling back to keyword-matching if none).
+// Deliberately does NOT include categories owned by other hooks - "start
+// thinking"/"testing"/"welcome"/"compact" are each triggered directly by
+// their own event (UserPromptSubmit/PostToolUse/SessionStart/PreCompact),
+// and "thinking" is reserved/manual-only - none of the five are things
+// Claude should be able to self-tag an ordinary answer as.
 const ALL_CATEGORIES = [
     'confirm_destructive', 'out_of_tokens', 'no_access', 'missing_file',
     'mistake', 'error', 'question', 'bug_fixed', 'bug found', 'fixing',
@@ -85,6 +90,11 @@ function playFile(filePath) {
     const platform = process.platform;
     try {
         if (platform === 'win32') {
+            // filePath is always plugin-internal (soundsRoot() + a hardcoded
+            // or whitelisted category name, never external/attacker input),
+            // and doubling ' is the complete escaping rule for a PowerShell
+            // single-quoted string - no other character is special inside
+            // one, so this is not a command-injection vector.
             const psCmd = `(New-Object Media.SoundPlayer '${filePath.replace(/'/g, "''")}').PlaySync()`;
             spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCmd], { stdio: 'ignore' });
         } else if (platform === 'darwin') {
