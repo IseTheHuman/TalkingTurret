@@ -18,6 +18,33 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/play-permission-sound.js\""
           }
         ]
+      },
+      {
+        "matcher": "quota_auto_resume_fired",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/play-quota-sound.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "quota_auto_resume_stale",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/play-quota-sound.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "quota_auto_resume_disabled",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/play-quota-sound.js\""
+          }
+        ]
       }
     ],
     "SessionStart": [
