@@ -32,6 +32,12 @@ You should see `talking-turret@skills-dir` listed under "Skills-directory plugin
 
 **To uninstall:** delete the `~/.claude/skills/talking-turret` folder, then restart.
 
+## Commands
+
+| Command | Effect |
+|---|---|
+| `/talking-turret:volume <0-100>` | Sets playback volume. On Windows this is necessary rather than cosmetic: the player used (`System.Media.SoundPlayer`) only appears in the volume mixer while a clip is actively playing, so there's no way to adjust it there. Instead, TalkingTurret scales the WAV's own sample data down before playing it — works the same way on every platform, at the default volume (100) it's a complete no-op with zero extra file activity. |
+
 ## Compatibility
 
 | Setup | Works? | Notes |
