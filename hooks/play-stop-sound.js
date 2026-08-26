@@ -2,15 +2,17 @@
 // Stop hook: pick a sound category for Claude's own last answer, instead of
 // always playing "finished". Two layers, in priority order:
 //
-//   1. Claude self-tags its answer (writes categoryTagPath) as one of its
-//      last tool calls in the turn - this is preferred, since it's Claude's
-//      own judgment with full context, at zero extra latency/cost (no
-//      separate API call).
-//   2. If no fresh tag exists, this hook BLOCKS ONCE (via the Stop hook's
-//      "decision":"block" response) to give Claude one chance to write it,
-//      then - on the guaranteed retry (stop_hook_active=true) - falls back
-//      to keyword-matching the transcript so a sound still always plays
-//      even if Claude never complies.
+//   1. Claude self-tags its answer (writes the tag file) as one of its last
+//      tool calls in the turn - this is preferred, since it's Claude's own
+//      judgment with full context, at zero extra latency/cost (no separate
+//      API call). play-userpromptsubmit-sound.js primes this convention on
+//      every turn via a silent (non-visible-to-user) additionalContext.
+//   2. If no fresh tag exists, this hook falls back to keyword-matching the
+//      transcript, silently - no JSON/stdout output, so nothing ever prints
+//      to the user's terminal. (An earlier version blocked once via the
+//      Stop hook's "decision":"block" to force a retry, but that always
+//      echoed something visible in the terminal; priming every turn via
+//      UserPromptSubmit instead made that retry unnecessary.)
 //
 // See README.md for the full design rationale.
 
@@ -19,21 +21,13 @@ const path = require('path');
 const {
     readHookStdin,
     soundsRoot,
-    dataDir,
     writeHookLog,
     playRandomSound,
+    ALL_CATEGORIES,
+    tagFilePath,
 } = require('./common');
 
-const ALL_CATEGORIES = [
-    'confirm_destructive', 'out_of_tokens', 'no_access', 'missing_file',
-    'mistake', 'error', 'question', 'bug_fixed', 'bug found', 'fixing',
-    'searching bug', 'understood', 'compliment', 'build', 'goodbye', 'finished',
-];
 const TAG_MAX_AGE_SECONDS = 45;
-
-function tagFilePath() {
-    return path.join(dataDir(), 'last-answer-category.json');
-}
 
 function readAndConsumeTag() {
     const tagPath = tagFilePath();
@@ -120,24 +114,15 @@ function main() {
     const hookInput = readHookStdin();
     const transcriptPath = hookInput.transcript_path;
     const sessionId = hookInput.session_id;
-    const stopHookActive = Boolean(hookInput.stop_hook_active);
 
     let matched = readAndConsumeTag();
     const source = matched ? 'claude-tag' : 'keyword';
 
-    // No tag, and this is the FIRST stop attempt this turn - give Claude one
-    // chance to write the tag instead of silently falling back to guessing.
-    // stop_hook_active is Claude Code's own loop-guard: true means we
-    // already blocked once for this turn, so never block a second time no
-    // matter what - that's what makes this finite.
-    if (!matched && !stopHookActive) {
-        const reason = `Before finishing, write a sound-category tag: create ${tagFilePath()} containing ` +
-            `{"category":"<one of: ${ALL_CATEGORIES.join(', ')}>","ts":"<current ISO8601 timestamp>"} ` +
-            `reflecting the actual tone/content of the answer you just gave, then finish normally.`;
-        writeHookLog('Stop:blocked-for-tag', '', sessionId, '');
-        process.stdout.write(JSON.stringify({ decision: 'block', reason }));
-        process.exit(0);
-    }
+    // No blocking retry here anymore: play-userpromptsubmit-sound.js primes
+    // the tag convention fresh on every turn (confirmed silent to the user,
+    // unlike a Stop-hook block, which always echoes something visible). If
+    // Claude still didn't self-tag, fall straight through to keyword-match
+    // below - zero JSON/stdout output, so nothing ever prints here.
 
     let scanText = null;
     if (!matched) {

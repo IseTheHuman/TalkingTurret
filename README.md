@@ -18,7 +18,7 @@ Five Claude Code hook events are wired up (`hooks/hooks.json`):
 |---|---|---|
 | `Notification` (`idle_prompt`) | Claude has been waiting on you for a while | random file from `sounds/waiting/` |
 | `Notification` (`permission_prompt`) | Claude needs a permission decision | random file from `sounds/question/` |
-| `UserPromptSubmit` | You just submitted a message | random file from `sounds/start thinking/` |
+| `UserPromptSubmit` | You just submitted a message | random file from `sounds/start thinking/` (also silently primes Claude with the `Stop` sound-tag convention — see below) |
 | `PostToolUse` (`AskUserQuestion`) | Claude asked a structured multiple-choice question | random file from `sounds/start thinking/` |
 | `Stop` | Claude finished a turn | category chosen dynamically — see below |
 
@@ -27,7 +27,7 @@ Five Claude Code hook events are wired up (`hooks/hooks.json`):
 A single fixed "finished" sound for every turn ending turned out to feel wrong most of the time (saying goodbye but hearing a generic "done" chime, etc.), so `Stop` picks from the full category list using two layers:
 
 1. **Claude self-tags its own answer.** Near the end of a turn, Claude writes a small JSON file — `{"category":"<name>","ts":"<now>"}` — to `${CLAUDE_PLUGIN_DATA}/last-answer-category.json`, reflecting what it actually just said. This is a normal tool call (not visible clutter in the answer), costs no extra API call, and is far more accurate than any keyword heuristic since it's Claude's own judgment with full context.
-2. **Enforcement.** If no fresh (≤45s old) valid tag exists when `Stop` fires, the hook returns `{"decision":"block","reason":"..."}`, which forces Claude to continue the turn instead of actually stopping, with instructions to write the tag. This can only happen **once per turn** — the hook checks `stop_hook_active` (Claude Code's own loop-guard field) and never blocks twice, so it's structurally impossible for this to hang. If Claude still doesn't comply on the retry, the hook falls back to keyword-matching the last paragraph of Claude's actual response text (with backtick-quoted code spans stripped, so mentioning a category name as a technical term doesn't false-positive as that category).
+2. **Priming, not blocking.** `play-userpromptsubmit-sound.js` teaches Claude the tag convention fresh on *every* turn, via `hookSpecificOutput.additionalContext` on `UserPromptSubmit` — this reaches Claude's context but is never printed to your terminal (confirmed empirically; unlike a `Stop`-hook `{"decision":"block","reason":...}`, which *always* echoes as a visible "Ran 1 stop hook" entry, no matter how short the text). The injected instruction also explicitly tells Claude not to mention the tag/instruction in its visible reply, since you never asked about it. An earlier version blocked `Stop` once to force a retry when Claude forgot; priming every turn made that retry — and its unavoidable terminal output — unnecessary. If Claude still doesn't self-tag, `Stop` falls back silently (no output at all) to keyword-matching the last paragraph of Claude's actual response text (with backtick-quoted code spans stripped, so mentioning a category name as a technical term doesn't false-positive as that category).
 
 If nothing fits, the tag/fallback both land on `finished` — that's a legitimate category, not an omission.
 
@@ -53,4 +53,4 @@ Claude Code auto-discovers a plugin placed in `~/.claude/skills/<name>/` (contai
 
 ## Debugging / auditing
 
-Every hook firing — including blocked `Stop` attempts — is logged to `${CLAUDE_PLUGIN_DATA}/hook-fire-log.jsonl` (timestamp, event, category, session ID, and either the matched sound file or the text snippet that was matched). Set the `HOOK_SOUND_DRYRUN` environment variable to any value to test a hook script without actually playing audio (still logs normally).
+Every hook firing is logged to `${CLAUDE_PLUGIN_DATA}/hook-fire-log.jsonl` (timestamp, event, category, session ID, and either the matched sound file or the text snippet that was matched). Set the `HOOK_SOUND_DRYRUN` environment variable to any value to test a hook script without actually playing audio (still logs normally).
