@@ -7,7 +7,7 @@
 // about it afterward.
 
 const path = require('path');
-const { readHookStdin, soundsRoot, writeHookLog, playRandomSound } = require('./common');
+const { readHookStdin, soundsRoot, writeHookLog, playRandomSound, isSubagentEvent } = require('./common');
 
 // Matches the common test-runner invocations across ecosystems. Deliberately
 // permissive (e.g. "npm test" and "npm run test" both match "npm.*test")
@@ -30,6 +30,7 @@ const TEST_COMMAND_PATTERNS = [
 ];
 
 const hookInput = readHookStdin();
+if (isSubagentEvent(hookInput)) process.exit(0);
 const command = (hookInput.tool_input && hookInput.tool_input.command) || '';
 const isTestCommand = TEST_COMMAND_PATTERNS.some((re) => re.test(command));
 

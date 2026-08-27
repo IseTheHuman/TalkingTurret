@@ -13,8 +13,9 @@
 // not about being un-capped).
 
 const path = require('path');
-const { readHookStdin, soundsRoot, writeHookLog, playRandomSound } = require('./common');
+const { readHookStdin, soundsRoot, writeHookLog, playRandomSound, isSubagentEvent } = require('./common');
 
 const hookInput = readHookStdin();
+if (isSubagentEvent(hookInput)) process.exit(0);
 const file = playRandomSound(path.join(soundsRoot(), 'out_of_tokens'));
 writeHookLog(`Notification:${hookInput.notification_type || 'quota'}`, 'out_of_tokens', hookInput.session_id, file ? path.basename(file) : '');

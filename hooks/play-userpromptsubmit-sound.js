@@ -7,9 +7,14 @@ const {
     playRandomSound,
     ALL_CATEGORIES,
     tagFilePath,
+    isSubagentEvent,
 } = require('./common');
 
 const hookInput = readHookStdin();
+// Also skips the tag-convention priming below - a dispatched subagent has
+// its own separate turn/Stop lifecycle the main session's self-tag system
+// was never meant to reach.
+if (isSubagentEvent(hookInput)) process.exit(0);
 const file = playRandomSound(path.join(soundsRoot(), 'start thinking'));
 writeHookLog('UserPromptSubmit', 'start thinking', hookInput.session_id, file ? path.basename(file) : '');
 

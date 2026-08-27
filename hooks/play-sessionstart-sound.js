@@ -5,10 +5,10 @@
 // so playing "welcome" there would be misleading.
 
 const path = require('path');
-const { readHookStdin, soundsRoot, writeHookLog, playRandomSound } = require('./common');
+const { readHookStdin, soundsRoot, writeHookLog, playRandomSound, isSubagentEvent } = require('./common');
 
 const hookInput = readHookStdin();
-if (hookInput.source !== 'compact') {
+if (!isSubagentEvent(hookInput) && hookInput.source !== 'compact') {
     const file = playRandomSound(path.join(soundsRoot(), 'welcome'));
     writeHookLog('SessionStart', 'welcome', hookInput.session_id, file ? path.basename(file) : (hookInput.source || ''));
 }

@@ -25,6 +25,7 @@ const {
     playRandomSound,
     ALL_CATEGORIES,
     tagFilePath,
+    isSubagentEvent,
 } = require('./common');
 
 const TAG_MAX_AGE_SECONDS = 45;
@@ -114,6 +115,7 @@ function keywordMatch(scanText) {
 
 function main() {
     const hookInput = readHookStdin();
+    if (isSubagentEvent(hookInput)) return;
     const transcriptPath = hookInput.transcript_path;
     const sessionId = hookInput.session_id;
 

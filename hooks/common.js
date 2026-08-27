@@ -19,6 +19,20 @@ function readHookStdin() {
     }
 }
 
+// True when this hook fired because of a subagent (dispatched via the
+// Agent tool) rather than the main session directly - Claude Code adds
+// `agent_id`/`agent_type` to a hook's payload only in that case. Every
+// hook script checks this immediately after reading stdin and returns
+// early if true: background/subagent activity (e.g. a dispatched
+// implementer running its own `npx jest`) was firing sounds under the
+// main session's own session_id with no way to tell them apart otherwise
+// - confirmed live via hook-fire-log.jsonl showing PostToolUse:Bash:testing
+// entries timed to a subagent's own test runs, not anything the user
+// actually ran themselves.
+function isSubagentEvent(hookInput) {
+    return Boolean(hookInput && hookInput.agent_id);
+}
+
 function pluginRoot() {
     return process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
 }
@@ -216,5 +230,5 @@ function playRandomSound(folder) {
 
 module.exports = {
     readHookStdin, pluginRoot, dataDir, soundsRoot, writeHookLog, playRandomSound,
-    ALL_CATEGORIES, tagFilePath, getVolume, setVolume,
+    ALL_CATEGORIES, tagFilePath, getVolume, setVolume, isSubagentEvent,
 };
