@@ -55,7 +55,7 @@ function soundsRoot() {
 // convention on every turn, silently) and play-stop-sound.js (reads back
 // whatever tag Claude wrote, falling back to keyword-matching if none).
 // Deliberately does NOT include categories owned by other hooks - "start
-// thinking"/"testing"/"compact" are each triggered directly by their own
+// thinking"/"testing"/"compacting" are each triggered directly by their own
 // event (UserPromptSubmit/PostToolUse/PreCompact), and "thinking" is
 // reserved/manual-only - none of the four are things Claude should be able
 // to self-tag an ordinary answer as. "welcome" IS included below, despite

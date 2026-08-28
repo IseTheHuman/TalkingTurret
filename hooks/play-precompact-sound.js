@@ -7,5 +7,5 @@ const { readHookStdin, soundsRoot, writeHookLog, playRandomSound, isSubagentEven
 
 const hookInput = readHookStdin();
 if (isSubagentEvent(hookInput)) process.exit(0);
-const file = playRandomSound(path.join(soundsRoot(), 'compact'));
-writeHookLog('PreCompact', 'compact', hookInput.session_id, file ? path.basename(file) : (hookInput.trigger || ''));
+const file = playRandomSound(path.join(soundsRoot(), 'compacting'));
+writeHookLog('PreCompact', 'compacting', hookInput.session_id, file ? path.basename(file) : (hookInput.trigger || ''));
