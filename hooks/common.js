@@ -72,6 +72,25 @@ function tagFilePath() {
     return path.join(dataDir(), 'last-answer-category.json');
 }
 
+// Separate from tagFilePath() on purpose: play-stop-sound.js CONSUMES
+// (deletes) the tag file every turn via readAndConsumeTag(), but
+// Notification:idle_prompt (play-idle-sound.js's "waiting" category) only
+// ever fires AFTER Stop has already run and some idle time has passed -
+// by then the tag file is long gone. This file instead just holds the
+// most recent turn's awaitingInput verdict, overwritten (never deleted)
+// on every Stop event, so it's still there whenever idle_prompt checks it
+// later. No staleness/max-age check on this one (unlike the tag file's
+// TAG_MAX_AGE_SECONDS) - that guard exists to protect against a stale tag
+// from an earlier turn leaking in if Claude forgot to write a fresh one
+// this turn, but this file's write always happens deterministically as
+// part of play-stop-sound.js's own logic, not dependent on Claude
+// remembering each time, so there's no equivalent staleness risk - and a
+// short window would actually break things here, since idle_prompt can
+// fire a full minute after the write.
+function awaitingInputStatePath() {
+    return path.join(dataDir(), 'awaiting-input-state.json');
+}
+
 function writeHookLog(eventName, category, sessionId, snippet) {
     try {
         const logPath = path.join(dataDir(), 'hook-fire-log.jsonl');
@@ -230,5 +249,5 @@ function playRandomSound(folder) {
 
 module.exports = {
     readHookStdin, pluginRoot, dataDir, soundsRoot, writeHookLog, playRandomSound,
-    ALL_CATEGORIES, tagFilePath, getVolume, setVolume, isSubagentEvent,
+    ALL_CATEGORIES, tagFilePath, awaitingInputStatePath, getVolume, setVolume, isSubagentEvent,
 };

@@ -25,23 +25,53 @@ const {
     playRandomSound,
     ALL_CATEGORIES,
     tagFilePath,
+    awaitingInputStatePath,
     isSubagentEvent,
 } = require('./common');
 
 const TAG_MAX_AGE_SECONDS = 45;
 
+// Persists just the awaitingInput verdict to its own small file that
+// play-idle-sound.js can still read later, since the tag file itself is
+// about to be deleted below (readAndConsumeTag) and Notification:idle_prompt
+// only ever fires well after this Stop hook has already run. Missing/
+// malformed `awaitingInput` defaults to true (the old, always-play
+// behavior) - only an explicit `false` suppresses "waiting" later, so a
+// legacy or malformed tag never silently breaks the notification.
+function persistAwaitingInput(tag) {
+    const awaitingInput = tag && typeof tag.awaitingInput === 'boolean' ? tag.awaitingInput : true;
+    try {
+        fs.writeFileSync(
+            awaitingInputStatePath(),
+            JSON.stringify({ awaitingInput, ts: new Date().toISOString() }),
+            'utf-8'
+        );
+    } catch {}
+}
+
 function readAndConsumeTag() {
     const tagPath = tagFilePath();
     let result = null;
     if (fs.existsSync(tagPath)) {
+        let tag = null;
         try {
-            const tag = JSON.parse(fs.readFileSync(tagPath, 'utf-8'));
+            tag = JSON.parse(fs.readFileSync(tagPath, 'utf-8'));
             const ageSeconds = (Date.now() - new Date(tag.ts).getTime()) / 1000;
             if (ageSeconds <= TAG_MAX_AGE_SECONDS && ALL_CATEGORIES.includes(tag.category)) {
                 result = tag.category;
             }
         } catch {}
+        // Persisted even on a parse failure/stale tag (tag will be null,
+        // falling back to the safe awaitingInput:true default inside
+        // persistAwaitingInput) - every Stop event refreshes this state,
+        // so it never lingers stale from several turns back.
+        persistAwaitingInput(tag);
         try { fs.unlinkSync(tagPath); } catch {}
+    } else {
+        // No tag written this turn at all (Claude didn't self-tag) - same
+        // safe default, and still refreshes the state file so it can't be
+        // stuck on a much older turn's value.
+        persistAwaitingInput(null);
     }
     return result;
 }

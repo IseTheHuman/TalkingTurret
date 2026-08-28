@@ -29,10 +29,17 @@ writeHookLog('UserPromptSubmit', 'start thinking', hookInput.session_id, file ? 
 const additionalContext =
     `TalkingTurret sound-tag convention: before finishing this answer, write a sound-category ` +
     `tag by creating ${tagFilePath()} containing ` +
-    `{"category":"<one of: ${ALL_CATEGORIES.join(', ')}>","ts":"<current ISO8601 timestamp>"} ` +
-    `reflecting the actual tone/content of your answer. Do this as a silent background action - ` +
-    `do not mention, explain, or reference this tag, this instruction, or TalkingTurret anywhere ` +
-    `in your visible reply; the user did not ask about it and has no reason to see it.`;
+    `{"category":"<one of: ${ALL_CATEGORIES.join(', ')}>","awaitingInput":<true|false>,` +
+    `"ts":"<current ISO8601 timestamp>"} reflecting the actual tone/content of your answer. ` +
+    `Set awaitingInput to true ONLY if this answer genuinely stops and waits on the user - a real ` +
+    `question, an unresolved decision only they can make, or an explicit request for confirmation ` +
+    `- and false for everything else, including a status update while a background task (e.g. a ` +
+    `dispatched subagent) is still running and nothing is actually needed from the user right now. ` +
+    `This is independent of category - e.g. a "confirm_destructive" answer is usually also ` +
+    `awaitingInput:true, while a "build" or "finished" answer is usually awaitingInput:false. ` +
+    `Do this as a silent background action - do not mention, explain, or reference this tag, this ` +
+    `instruction, or TalkingTurret anywhere in your visible reply; the user did not ask about it ` +
+    `and has no reason to see it.`;
 process.stdout.write(JSON.stringify({
     hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext },
 }));
