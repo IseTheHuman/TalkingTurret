@@ -34,12 +34,25 @@ const TAG_MAX_AGE_SECONDS = 45;
 // Persists just the awaitingInput verdict to its own small file that
 // play-idle-sound.js can still read later, since the tag file itself is
 // about to be deleted below (readAndConsumeTag) and Notification:idle_prompt
-// only ever fires well after this Stop hook has already run. Missing/
-// malformed `awaitingInput` defaults to true (the old, always-play
-// behavior) - only an explicit `false` suppresses "waiting" later, so a
-// legacy or malformed tag never silently breaks the notification.
+// only ever fires well after this Stop hook has already run. This file is
+// NEVER deleted (unlike the tag file below) - only ever overwritten, every
+// single Stop event, regardless of whether Claude wrote a category tag
+// this turn at all.
+//
+// Defaults to false (do NOT play "waiting") whenever Claude didn't
+// explicitly write `awaitingInput: true` this turn - a missing tag, a
+// tag with no awaitingInput field, or malformed JSON all resolve to
+// false. This is the opposite of the tag-category fallback's own
+// philosophy (which defaults toward still playing SOMETHING, since
+// missing a sound entirely reads as broken) - "waiting" is different:
+// it's specifically meant to only fire when Claude is truly blocked on
+// the user, so the safe default here is silence, not noise. Confirmed
+// live: the previous true-default played "waiting" on a turn where
+// Claude simply forgot to self-tag (fell through to keyword-matching for
+// the category), which is exactly the false positive this exists to
+// prevent.
 function persistAwaitingInput(tag) {
-    const awaitingInput = tag && typeof tag.awaitingInput === 'boolean' ? tag.awaitingInput : true;
+    const awaitingInput = tag && typeof tag.awaitingInput === 'boolean' ? tag.awaitingInput : false;
     try {
         fs.writeFileSync(
             awaitingInputStatePath(),
