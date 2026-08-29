@@ -145,11 +145,21 @@ function setVolume(value) {
     return clamped;
 }
 
-// Scales a 16-bit PCM WAV's sample data by `factor` (0..1). Returns null
-// (meaning "play unscaled, don't risk corrupting it") for anything that
-// isn't plain 16-bit PCM - every file currently in sounds/ is, but this
-// guards against a future non-PCM addition being silently mangled.
-function scaleWavPcm16(buf, factor) {
+// Scales a PCM WAV's sample data by `factor` (0..1). Returns null (meaning
+// "play unscaled, don't risk corrupting it") for anything that isn't plain
+// 16-bit or 24-bit PCM. Originally 16-bit-only - confirmed live (2026-08-29)
+// that most of sounds/testing/ (14 of 15 files) is 24-bit, which silently
+// fell through this guard and played at full native volume regardless of
+// the volume setting, while every 16-bit file elsewhere correctly scaled
+// down - exactly the "testing sounds louder than everything else" symptom
+// reported, not a mishearing. A broader survey found smaller pockets of
+// 24-bit files scattered across most other categories too (e.g.
+// compliment 8/13, error 7/30) - less noticeable there since most of those
+// categories' plays still hit a correctly-scaled 16-bit file, but the same
+// bug either way. 24-bit samples use Buffer's readIntLE/writeIntLE(offset,
+// 3) - Node has no dedicated 24-bit accessor, but these generic
+// arbitrary-byte-length ones handle it directly, range -2^23..2^23-1.
+function scaleWavPcm(buf, factor) {
     if (buf.toString('ascii', 0, 4) !== 'RIFF' || buf.toString('ascii', 8, 12) !== 'WAVE') return null;
     let offset = 12;
     let audioFormat = null;
@@ -168,12 +178,21 @@ function scaleWavPcm16(buf, factor) {
         }
         offset += 8 + size + (size % 2);
     }
-    if (audioFormat !== 1 || bitsPerSample !== 16 || dataOffset < 0) return null;
+    if (audioFormat !== 1 || dataOffset < 0) return null;
+    if (bitsPerSample !== 16 && bitsPerSample !== 24) return null;
     const out = Buffer.from(buf);
-    const end = dataOffset + dataSize - (dataSize % 2);
-    for (let i = dataOffset; i < end; i += 2) {
-        const sample = out.readInt16LE(i);
-        out.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(sample * factor))), i);
+    const bytesPerSample = bitsPerSample / 8;
+    const end = dataOffset + dataSize - (dataSize % bytesPerSample);
+    if (bitsPerSample === 16) {
+        for (let i = dataOffset; i < end; i += 2) {
+            const sample = out.readInt16LE(i);
+            out.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(sample * factor))), i);
+        }
+    } else {
+        for (let i = dataOffset; i < end; i += 3) {
+            const sample = out.readIntLE(i, 3);
+            out.writeIntLE(Math.max(-8388608, Math.min(8388607, Math.round(sample * factor))), i, 3);
+        }
     }
     return out;
 }
@@ -186,7 +205,7 @@ function preparePlayback(filePath) {
     const volume = getVolume();
     if (volume >= 100) return [filePath, null];
     try {
-        const scaled = scaleWavPcm16(fs.readFileSync(filePath), volume / 100);
+        const scaled = scaleWavPcm(fs.readFileSync(filePath), volume / 100);
         if (!scaled) return [filePath, null];
         const scratchPath = volumeScratchPath();
         fs.writeFileSync(scratchPath, scaled);
